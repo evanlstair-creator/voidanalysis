@@ -37,6 +37,10 @@ def init_google_sheets():
     """Initialize Google Sheets integration if credentials are available."""
     global SHEETS_DB
 
+    has_json = bool(os.environ.get('GOOGLE_SHEETS_CREDENTIALS_JSON'))
+    has_path = bool(GOOGLE_SHEETS_CREDENTIALS)
+    print(f"ℹ️  Google Sheets creds json set: {has_json}, path set: {has_path}")
+
     if not GoogleSheetsDB:
         print("ℹ️  Google Sheets integration not available (missing dependencies).")
         return
@@ -51,6 +55,13 @@ def init_google_sheets():
     except Exception as exc:
         print(f"⚠️  Google Sheets sync error: {exc}")
         SHEETS_DB = None
+
+
+def ensure_google_sheets():
+    """Lazy-init Google Sheets in case env vars were set after startup."""
+    if SHEETS_DB is None:
+        init_google_sheets()
+    return SHEETS_DB
 
 
 def init_database():
@@ -347,7 +358,7 @@ def analyze():
         print(f"API calls used: {api_calls}")
         print(f"{'='*80}\n")
 
-        if SHEETS_DB:
+        if ensure_google_sheets():
             try:
                 added_places = SHEETS_DB.save_places(retailers_found)
                 SHEETS_DB.save_search({
