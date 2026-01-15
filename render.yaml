@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: retail-void-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api_server.py
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_SHEET_ID
+        value: 1at4Q1ZlPMz8WDzpVHKDHYm-46843zGllE9Jf432W570
+      - key: GOOGLE_SHEETS_CREDENTIALS_JSON
+        sync: false

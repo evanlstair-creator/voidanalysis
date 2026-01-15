@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+*.db
+outputs/
+.vscode/
+*.code-workspace
+*.sqlite
+*.sqlite3
+*.json
+!netlify/config.js

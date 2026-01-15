@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Retail Void Dashboard</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA85pSu9Naza2sf1YTjq82D3v7UFtt8I80&libraries=places,geometry"></script>
+    <script src="config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vista-red: #b12b2b;
+            --vista-gold: #f0b232;
+            --vista-sky: #b6d9f2;
+            --vista-ink: #15181d;
+            --vista-slate: #2a2f36;
+            --vista-paper: #f6f6f4;
+            --vista-white: #ffffff;
+            --border: rgba(21, 24, 29, 0.08);
+            --shadow: 0 10px 24px rgba(21, 24, 29, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+            background: var(--vista-paper);
+            color: var(--vista-ink);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 6vw;
+            background: var(--vista-ink);
+            color: var(--vista-white);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .topbar-title {
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .logo-image {
+            height: 32px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+        }
+
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 28px 6vw 60px;
+        }
+
+        .panel {
+            background: var(--vista-white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+
+        .panel + .panel {
+            margin-top: 18px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title h2 {
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.3rem;
+        }
+
+        .pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(21, 24, 29, 0.06);
+            color: var(--vista-slate);
+        }
+
+        .pill.online {
+            background: rgba(182, 217, 242, 0.4);
+            color: #235a7a;
+        }
+
+        .pill.offline {
+            background: rgba(177, 43, 43, 0.15);
+            color: var(--vista-red);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--vista-slate);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: var(--vista-white);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .form-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .input-map {
+            width: 100%;
+            height: 440px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-top: 12px;
+        }
+
+        .input-map-note {
+            font-size: 0.85rem;
+            color: rgba(21, 24, 29, 0.6);
+            margin-top: 8px;
+        }
+
+        .btn-primary {
+            background: var(--vista-ink);
+            color: var(--vista-white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.85;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            display: none;
+            width: 26px;
+            height: 26px;
+            border: 3px solid rgba(21, 24, 29, 0.1);
+            border-top: 3px solid var(--vista-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-message.success {
+            background: rgba(182, 217, 242, 0.4);
+            color: #235a7a;
+        }
+
+        .status-message.error {
+            background: rgba(177, 43, 43, 0.1);
+            color: var(--vista-red);
+        }
+
+        .status-message.info {
+            background: rgba(240, 178, 50, 0.2);
+            color: #7a5a1d;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--vista-white);
+        }
+
+        .stat-card h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(21, 24, 29, 0.6);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .map-wrap {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        #map {
+            width: 100%;
+            height: 520px;
+        }
+
+        .table-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .table-controls input,
+        .table-controls select {
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .table-link {
+            color: var(--vista-ink);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .table-link:hover {
+            text-decoration: underline;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--vista-paper);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th.sortable span {
+            font-size: 0.7rem;
+            margin-left: 6px;
+            color: rgba(21, 24, 29, 0.5);
+        }
+
+        tr.row-active {
+            background: rgba(182, 217, 242, 0.25);
+        }
+
+        tbody tr:hover {
+            background: rgba(182, 217, 242, 0.18);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 10;
+        }
+
+        .modal.is-visible {
+            display: flex;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(21, 24, 29, 0.45);
+        }
+
+        .modal-card {
+            position: relative;
+            background: var(--vista-white);
+            border-radius: 18px;
+            padding: 24px;
+            width: min(680px, 96vw);
+            box-shadow: 0 20px 45px rgba(21, 24, 29, 0.2);
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .modal-header h3 {
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            border: 1px solid var(--border);
+            background: transparent;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: var(--vista-slate);
+        }
+
+        .modal-body strong {
+            color: var(--vista-ink);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category-row {
+            cursor: pointer;
+        }
+
+        .category-row:hover {
+            background: rgba(182, 217, 242, 0.25);
+        }
+
+        .category-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .category-item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(21, 24, 29, 0.02);
+            font-size: 0.9rem;
+        }
+
+        .category-item strong {
+            display: block;
+            color: var(--vista-ink);
+            margin-bottom: 4px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            background: rgba(21, 24, 29, 0.05);
+        }
+
+        .badge-success {
+            background: rgba(182, 217, 242, 0.4);
+            color: #235a7a;
+        }
+
+        .badge-warning {
+            background: rgba(240, 178, 50, 0.2);
+            color: #7a5a1d;
+        }
+
+        @media (max-width: 980px) {
+            #map {
+                height: 420px;
+            }
+
+            .input-map {
+                height: 340px;
+            }
+
+            .logo-image {
+                height: 28px;
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-title">Retail Void Analysis</div>
+        <img class="logo-image" src="vista-logo-white-red-arrow.png" alt="Vista logo">
+    </header>
+
+    <main class="container">
+        <section class="panel" id="search">
+            <div class="section-title">
+                <h2>Run Void Analysis</h2>
+                <span class="pill" id="connectionPill">Checking backend</span>
+            </div>
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="coordinates">Coordinates (paste from Google Maps)</label>
+                    <input type="text" id="coordinates" name="coordinates" placeholder="33.423399, -96.588787">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="latitude">Latitude</label>
+                        <input type="text" id="latitude" name="latitude" placeholder="33.423248" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="longitude">Longitude</label>
+                        <input type="text" id="longitude" name="longitude" placeholder="-96.588767" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="radius">Radius (miles)</label>
+                        <input type="number" id="radius" name="radius" value="5" min="1" max="10" step="0.5" required>
+                    </div>
+                </div>
+                <div id="inputMap" class="input-map"></div>
+                <div class="input-map-note">Click the map to set latitude/longitude, or paste coordinates above.</div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="searchBtn">Run Analysis</button>
+                    <button class="btn-ghost" type="button" id="useLocation">Use my location</button>
+                    <div class="spinner" id="spinner"></div>
+                </div>
+                <div class="status-message" id="statusMessage"></div>
+            </form>
+        </section>
+
+        <section id="results">
+            <div class="panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Places Found</h3>
+                        <div class="value" id="statTotal">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Matched Chains</h3>
+                        <div class="value" id="statMatched">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Tenant Opportunities</h3>
+                        <div class="value" id="statMissing">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Coverage</h3>
+                        <div class="value" id="statCoverage">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;">
+                <div class="section-title">
+                    <h2>Map View</h2>
+                    <span class="pill" id="mapRadiusLabel">Radius: 0 mi</span>
+                </div>
+                <div class="map-wrap">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;">
+                <div class="section-title">
+                    <h2>Retailers Found</h2>
+                </div>
+                <div class="table-controls">
+                    <input type="search" id="foundFilter" placeholder="Filter by retailer name">
+                    <span id="foundCount">0 results</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="foundTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-key="name" data-type="text">Business Name <span></span></th>
+                                <th class="sortable" data-key="match" data-type="text">Matched Chain <span></span></th>
+                                <th class="sortable" data-key="distance" data-type="number">Distance <span></span></th>
+                                <th class="sortable" data-key="address" data-type="text">Address <span></span></th>
+                                <th class="sortable" data-key="rating" data-type="number">Rating <span></span></th>
+                                <th class="sortable" data-key="status" data-type="text">Status <span></span></th>
+                                <th>Maps</th>
+                            </tr>
+                        </thead>
+                        <tbody id="foundTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;">
+                <div class="section-title">
+                    <h2>Category Mix Analysis</h2>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="categoryTable">
+                        <thead>
+                            <tr>
+                                <th>Google Category</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;">
+                <div class="section-title">
+                    <h2>Tenant Opportunities</h2>
+                </div>
+                <div class="table-controls">
+                    <select id="missingCategoryFilter">
+                        <option value="">All categories</option>
+                    </select>
+                    <span id="missingCount">0 opportunities</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="missingTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-key="name" data-type="text">Chain Name <span></span></th>
+                                <th class="sortable" data-key="category" data-type="text">Category <span></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="missingTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="placeModal" aria-hidden="true">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h3 id="modalTitle">Loading details...</h3>
+                <button class="modal-close" id="modalClose" type="button">Close</button>
+            </div>
+            <div class="modal-body" id="modalBody">Fetching Google details...</div>
+            <div class="modal-actions">
+                <a class="link-btn primary" id="modalMapsLink" href="#" target="_blank" rel="noreferrer">View on Google Maps</a>
+                <a class="link-btn" id="modalStreetLink" href="#" target="_blank" rel="noreferrer">Street View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="categoryModal" aria-hidden="true">
+        <div class="modal-backdrop" id="categoryBackdrop"></div>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="categoryTitle">
+            <div class="modal-header">
+                <h3 id="categoryTitle">Category</h3>
+                <button class="modal-close" id="categoryClose" type="button">Close</button>
+            </div>
+            <div class="modal-body" id="categoryBody">Loading category...</div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let markers = [];
+        let markersById = {};
+        let retailersById = {};
+        let lastResults = null;
+        let inputMap;
+        let inputMarker;
+        let API_BASE_URL = null;
+        let radiusCircle = null;
+        let radiusLine = null;
+        let placesService = null;
+        let placeDetailsCache = {};
+
+        const mapStyle = [
+            { elementType: 'geometry', stylers: [{ color: '#f2f2f2' }] },
+            { elementType: 'labels.text.fill', stylers: [{ color: '#4b4f55' }] },
+            { elementType: 'labels.text.stroke', stylers: [{ color: '#f2f2f2' }] },
+            { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#e2e5e8' }] },
+            { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#cfe3f3' }] },
+            { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e9ecef' }] }
+        ];
+
+        const sortState = {
+            found: { key: null, dir: 'asc' },
+            missing: { key: null, dir: 'asc' }
+        };
+
+        function updateConnectionPill(status, text) {
+            const pill = document.getElementById('connectionPill');
+            pill.classList.remove('online', 'offline');
+            if (status === 'online') {
+                pill.classList.add('online');
+            }
+            if (status === 'offline') {
+                pill.classList.add('offline');
+            }
+            pill.textContent = text;
+        }
+
+        function getApiOverride() {
+            const params = new URLSearchParams(window.location.search);
+            const paramUrl = params.get('api');
+            if (paramUrl) {
+                return paramUrl.replace(/\\/$/, '');
+            }
+            if (window.VISTA_API_BASE_URL) {
+                return window.VISTA_API_BASE_URL.replace(/\\/$/, '');
+            }
+            return null;
+        }
+
+        async function discoverBackendPort() {
+            const overrideUrl = getApiOverride();
+            if (overrideUrl) {
+                try {
+                    const response = await fetch(`${overrideUrl}/api/health`, {
+                        method: 'GET',
+                        signal: AbortSignal.timeout(2000)
+                    });
+                    if (response.ok) {
+                        API_BASE_URL = overrideUrl;
+                        updateConnectionPill('online', 'Backend connected');
+                        showStatus(`Connected to backend at ${overrideUrl}`, 'success');
+                        return overrideUrl;
+                    }
+                } catch (error) {
+                    updateConnectionPill('offline', 'Backend offline');
+                    showStatus(`Backend not responding at ${overrideUrl}`, 'error');
+                    return null;
+                }
+            }
+
+            const portsToTry = [5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009];
+
+            for (const port of portsToTry) {
+                try {
+                    const response = await fetch(`http://localhost:${port}/api/health`, {
+                        method: 'GET',
+                        signal: AbortSignal.timeout(1000)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.status === 'healthy') {
+                            API_BASE_URL = `http://localhost:${port}`;
+                            updateConnectionPill('online', `Backend on ${port}`);
+                            showStatus(`Connected to backend on port ${port}`, 'success');
+                            return port;
+                        }
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+
+            updateConnectionPill('offline', 'Backend offline');
+            showStatus('Backend server not found. Please start: python api_server.py', 'error');
+            return null;
+        }
+
+        function initMap(lat, lng) {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: lat, lng: lng },
+                zoom: 12,
+                styles: mapStyle,
+                mapTypeControl: false
+            });
+
+            placesService = new google.maps.places.PlacesService(map);
+
+            new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 7,
+                    fillColor: '#f0b232',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2
+                },
+                title: 'Search Center'
+            });
+        }
+
+        function initInputMap() {
+            const defaultLat = 39.8283;
+            const defaultLng = -98.5795;
+            const latField = document.getElementById('latitude').value;
+            const lngField = document.getElementById('longitude').value;
+
+            const initialLat = parseFloat(latField);
+            const initialLng = parseFloat(lngField);
+            const center = {
+                lat: Number.isFinite(initialLat) ? initialLat : defaultLat,
+                lng: Number.isFinite(initialLng) ? initialLng : defaultLng
+            };
+
+            inputMap = new google.maps.Map(document.getElementById('inputMap'), {
+                center: center,
+                zoom: 4,
+                styles: mapStyle,
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
+                streetViewControl: false
+            });
+
+            inputMarker = new google.maps.Marker({
+                position: center,
+                map: inputMap,
+                draggable: true,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 7,
+                    fillColor: '#b12b2b',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2
+                }
+            });
+
+            inputMap.addListener('click', (event) => {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                setCoordinates(lat, lng, true);
+            });
+
+            inputMarker.addListener('dragend', (event) => {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                setCoordinates(lat, lng, true);
+            });
+        }
+
+        function setCoordinates(lat, lng, panMap = false) {
+            const latValue = Number(lat);
+            const lngValue = Number(lng);
+            if (!Number.isFinite(latValue) || !Number.isFinite(lngValue)) {
+                return;
+            }
+
+            const latFixed = latValue.toFixed(6);
+            const lngFixed = lngValue.toFixed(6);
+
+            document.getElementById('latitude').value = latFixed;
+            document.getElementById('longitude').value = lngFixed;
+            document.getElementById('coordinates').value = `${latFixed}, ${lngFixed}`;
+
+            if (inputMarker) {
+                inputMarker.setPosition({ lat: latValue, lng: lngValue });
+            }
+            if (panMap && inputMap) {
+                inputMap.panTo({ lat: latValue, lng: lngValue });
+                inputMap.setZoom(12);
+            }
+        }
+
+        function updateRadiusOverlays(lat, lng, miles) {
+            if (!map) {
+                return;
+            }
+
+            if (radiusCircle) {
+                radiusCircle.setMap(null);
+            }
+            if (radiusLine) {
+                radiusLine.setMap(null);
+            }
+
+            const radiusMeters = miles * 1609.34;
+            const center = new google.maps.LatLng(lat, lng);
+
+            radiusCircle = new google.maps.Circle({
+                map: map,
+                center: center,
+                radius: radiusMeters,
+                fillColor: '#b6d9f2',
+                fillOpacity: 0.2,
+                strokeColor: '#235a7a',
+                strokeOpacity: 0.5,
+                strokeWeight: 1
+            });
+
+            const endPoint = google.maps.geometry.spherical.computeOffset(center, radiusMeters, 90);
+            radiusLine = new google.maps.Polyline({
+                map: map,
+                path: [center, endPoint],
+                strokeColor: '#b12b2b',
+                strokeOpacity: 0.7,
+                strokeWeight: 2
+            });
+
+            map.fitBounds(radiusCircle.getBounds());
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('statusMessage').style.display = 'none';
+        }
+
+        function animateValue(element, endValue, suffix = '', duration = 700) {
+            const startValue = 0;
+            const startTime = performance.now();
+
+            function tick(now) {
+                const progress = Math.min((now - startTime) / duration, 1);
+                const current = Math.floor(progress * (endValue - startValue) + startValue);
+                element.textContent = suffix ? `${current}${suffix}` : current.toLocaleString();
+                if (progress < 1) {
+                    requestAnimationFrame(tick);
+                }
+            }
+
+            requestAnimationFrame(tick);
+        }
+
+        function filterTableRows(bodyId, query) {
+            const rows = Array.from(document.getElementById(bodyId).querySelectorAll('tr'));
+            const normalized = query.trim().toLowerCase();
+            let visible = 0;
+
+            rows.forEach(row => {
+                const name = (row.dataset.name || '').toLowerCase();
+                const match = name.includes(normalized);
+                row.style.display = match ? '' : 'none';
+                if (match) {
+                    visible += 1;
+                }
+            });
+
+            return visible;
+        }
+
+        function sortTable(bodyId, key, type, dir) {
+            const tbody = document.getElementById(bodyId);
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                const aVal = a.dataset[key] || '';
+                const bVal = b.dataset[key] || '';
+                if (type === 'number') {
+                    const aNum = parseFloat(aVal) || 0;
+                    const bNum = parseFloat(bVal) || 0;
+                    return (aNum - bNum) * (dir === 'asc' ? 1 : -1);
+                }
+                return aVal.localeCompare(bVal) * (dir === 'asc' ? 1 : -1);
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function bindSortableHeaders(tableId, stateKey) {
+            const table = document.getElementById(tableId);
+            const headers = table.querySelectorAll('th.sortable');
+
+            headers.forEach(header => {
+                header.addEventListener('click', () => {
+                    const key = header.dataset.key;
+                    const type = header.dataset.type;
+                    const state = sortState[stateKey];
+
+                    if (state.key === key) {
+                        state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.key = key;
+                        state.dir = 'asc';
+                    }
+
+                    headers.forEach(h => {
+                        h.querySelector('span').textContent = '';
+                    });
+                    header.querySelector('span').textContent = state.dir === 'asc' ? 'asc' : 'desc';
+
+                    sortTable(stateKey === 'found' ? 'foundTableBody' : 'missingTableBody', key, type, state.dir);
+                });
+            });
+        }
+
+        function setActiveRow(row) {
+            document.querySelectorAll('tr.row-active').forEach(activeRow => {
+                activeRow.classList.remove('row-active');
+            });
+            if (row) {
+                row.classList.add('row-active');
+            }
+        }
+
+        function buildMapsUrl(retailer) {
+            if (retailer.place_id) {
+                return `https://www.google.com/maps/place/?q=place_id:${retailer.place_id}`;
+            }
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(retailer.name + ' ' + retailer.address)}`;
+        }
+
+        function buildStreetViewUrl(retailer) {
+            return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${retailer.latitude},${retailer.longitude}`;
+        }
+
+        function formatMiles(value) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) {
+                return '-';
+            }
+            return `${num.toFixed(2)} mi`;
+        }
+
+        function openPlaceModal(retailer) {
+            const modal = document.getElementById('placeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalMapsLink = document.getElementById('modalMapsLink');
+            const modalStreetLink = document.getElementById('modalStreetLink');
+
+            modalTitle.textContent = retailer.name;
+            modalBody.textContent = 'Fetching Google details...';
+            modalMapsLink.href = buildMapsUrl(retailer);
+            modalStreetLink.href = buildStreetViewUrl(retailer);
+            modal.classList.add('is-visible');
+
+            if (!placesService || !retailer.place_id) {
+                modalBody.innerHTML = `<div><strong>Address:</strong> ${retailer.address}</div>`;
+                return;
+            }
+
+            if (placeDetailsCache[retailer.place_id]) {
+                renderPlaceDetails(placeDetailsCache[retailer.place_id], modalBody);
+                return;
+            }
+
+            placesService.getDetails({
+                placeId: retailer.place_id,
+                fields: [
+                    'name',
+                    'formatted_address',
+                    'formatted_phone_number',
+                    'website',
+                    'url',
+                    'rating',
+                    'user_ratings_total',
+                    'opening_hours',
+                    'price_level',
+                    'types',
+                    'business_status'
+                ]
+            }, (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+                    placeDetailsCache[retailer.place_id] = place;
+                    renderPlaceDetails(place, modalBody);
+                    if (place.url) {
+                        modalMapsLink.href = place.url;
+                    }
+                } else {
+                    modalBody.innerHTML = `<div><strong>Address:</strong> ${retailer.address}</div><div>Details unavailable (${status}).</div>`;
+                }
+            });
+        }
+
+        function renderPlaceDetails(place, container) {
+            const hours = place.opening_hours && place.opening_hours.weekday_text
+                ? place.opening_hours.weekday_text.map(day => `<div>${day}</div>`).join('')
+                : 'Not available';
+            const types = place.types ? place.types.map(type => type.replace(/_/g, ' ')).join(', ') : 'Not available';
+            const price = Number.isInteger(place.price_level) ? '$'.repeat(place.price_level + 1) : 'Not available';
+            const rating = place.rating ? `${place.rating} (${place.user_ratings_total || 0} reviews)` : 'Not available';
+
+            container.innerHTML = `
+                <div><strong>Address:</strong> ${place.formatted_address || 'Not available'}</div>
+                <div><strong>Phone:</strong> ${place.formatted_phone_number || 'Not available'}</div>
+                <div><strong>Website:</strong> ${place.website ? `<a class="table-link" href="${place.website}" target="_blank" rel="noreferrer">${place.website}</a>` : 'Not available'}</div>
+                <div><strong>Rating:</strong> ${rating}</div>
+                <div><strong>Price level:</strong> ${price}</div>
+                <div><strong>Business status:</strong> ${place.business_status || 'Not available'}</div>
+                <div><strong>Categories:</strong> ${types}</div>
+                <div><strong>Hours:</strong> ${hours}</div>
+            `;
+        }
+
+        function closePlaceModal() {
+            document.getElementById('placeModal').classList.remove('is-visible');
+        }
+
+        function openCategoryModal(category) {
+            if (!lastResults) {
+                return;
+            }
+
+            const modal = document.getElementById('categoryModal');
+            const modalTitle = document.getElementById('categoryTitle');
+            const modalBody = document.getElementById('categoryBody');
+
+            const matches = lastResults.retailers_found.filter(retailer => {
+                const types = Array.isArray(retailer.types)
+                    ? retailer.types
+                    : (retailer.types ? retailer.types.split(', ') : []);
+                return types.includes(category);
+            });
+
+            modalTitle.textContent = `${category.replace(/_/g, ' ')} (${matches.length})`;
+            if (matches.length === 0) {
+                modalBody.innerHTML = '<div>No places found for this category.</div>';
+            } else {
+                modalBody.innerHTML = `<div class="category-list">${
+                    matches.map(retailer => `
+                        <div class="category-item">
+                            <strong>${retailer.name}</strong>
+                            <div>${retailer.address}</div>
+                            <div>${formatMiles(retailer.distance_miles)} | ${retailer.rating ? `${retailer.rating} rating` : 'No rating'}</div>
+                        </div>
+                    `).join('')
+                }</div>`;
+            }
+
+            modal.classList.add('is-visible');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('is-visible');
+        }
+
+        function focusRetailer(placeId) {
+            const retailer = retailersById[placeId];
+            if (!retailer || !map) {
+                return;
+            }
+
+            map.panTo({ lat: retailer.latitude, lng: retailer.longitude });
+            map.setZoom(17);
+
+            const marker = markersById[placeId];
+            if (marker) {
+                marker.setAnimation(google.maps.Animation.BOUNCE);
+                setTimeout(() => marker.setAnimation(null), 700);
+            }
+
+            return;
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await discoverBackendPort();
+
+            document.getElementById('coordinates').addEventListener('input', (e) => {
+                const value = e.target.value.trim();
+                if (value.includes(',')) {
+                    const parts = value.split(',').map(p => p.trim());
+                    if (parts.length === 2) {
+                        const lat = parseFloat(parts[0]);
+                        const lng = parseFloat(parts[1]);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            setCoordinates(lat, lng, true);
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('latitude').addEventListener('input', () => {
+                const lat = parseFloat(document.getElementById('latitude').value);
+                const lng = parseFloat(document.getElementById('longitude').value);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    setCoordinates(lat, lng, true);
+                }
+            });
+
+            document.getElementById('longitude').addEventListener('input', () => {
+                const lat = parseFloat(document.getElementById('latitude').value);
+                const lng = parseFloat(document.getElementById('longitude').value);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    setCoordinates(lat, lng, true);
+                }
+            });
+
+            document.getElementById('useLocation').addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    showStatus('Geolocation not supported in this browser.', 'error');
+                    return;
+                }
+
+                showStatus('Fetching your location...', 'info');
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        setCoordinates(lat, lng, true);
+                        showStatus('Location added. Ready to run analysis.', 'success');
+                    },
+                    () => {
+                        showStatus('Unable to access your location.', 'error');
+                    }
+                );
+            });
+
+            document.getElementById('foundFilter').addEventListener('input', (e) => {
+                const count = filterTableRows('foundTableBody', e.target.value);
+                document.getElementById('foundCount').textContent = `${count} results`;
+            });
+
+            document.getElementById('missingCategoryFilter').addEventListener('change', (e) => {
+                const value = e.target.value;
+                const rows = Array.from(document.getElementById('missingTableBody').querySelectorAll('tr'));
+                let visible = 0;
+                rows.forEach(row => {
+                    const category = row.dataset.category || '';
+                    const match = value === '' || category === value;
+                    row.style.display = match ? '' : 'none';
+                    if (match) {
+                        visible += 1;
+                    }
+                });
+                document.getElementById('missingCount').textContent = `${visible} opportunities`;
+            });
+
+            bindSortableHeaders('foundTable', 'found');
+            bindSortableHeaders('missingTable', 'missing');
+
+            document.getElementById('modalClose').addEventListener('click', closePlaceModal);
+            document.getElementById('modalBackdrop').addEventListener('click', closePlaceModal);
+            document.getElementById('categoryClose').addEventListener('click', closeCategoryModal);
+            document.getElementById('categoryBackdrop').addEventListener('click', closeCategoryModal);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closePlaceModal();
+                    closeCategoryModal();
+                }
+            });
+
+            initInputMap();
+        });
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!API_BASE_URL) {
+                showStatus('Backend server not connected. Please start: python api_server.py', 'error');
+                return;
+            }
+
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            const radius = parseFloat(document.getElementById('radius').value);
+
+            if (isNaN(latitude) || isNaN(longitude) || isNaN(radius)) {
+                showStatus('Please enter valid coordinates and radius', 'error');
+                return;
+            }
+
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('spinner').style.display = 'block';
+            hideStatus();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        latitude: latitude,
+                        longitude: longitude,
+                        radius: radius
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResults(data, latitude, longitude, radius);
+                showStatus('Analysis complete.', 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}. Make sure the backend server is running.`, 'error');
+            } finally {
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('spinner').style.display = 'none';
+            }
+        });
+
+        function displayResults(data, centerLat, centerLng, radius) {
+            document.getElementById('results').style.display = 'block';
+            lastResults = data;
+
+            animateValue(document.getElementById('statTotal'), data.stats.total_places);
+            animateValue(document.getElementById('statMatched'), data.stats.matched_places);
+            animateValue(document.getElementById('statMissing'), data.stats.missing_retailers);
+            animateValue(document.getElementById('statCoverage'), data.stats.coverage_percentage, '%');
+
+            document.getElementById('mapRadiusLabel').textContent = `Radius: ${radius} mi`;
+            initMap(centerLat, centerLng);
+            updateRadiusOverlays(centerLat, centerLng, radius);
+
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            markersById = {};
+            retailersById = {};
+
+            data.retailers_found.forEach(retailer => {
+                retailersById[retailer.place_id] = retailer;
+                const marker = new google.maps.Marker({
+                    position: { lat: retailer.latitude, lng: retailer.longitude },
+                    map: map,
+                    title: retailer.name,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 6,
+                        fillColor: retailer.matched_retailer ? '#b12b2b' : '#b6d9f2',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 1
+                    }
+                });
+
+                marker.addListener('click', () => {
+                    focusRetailer(retailer.place_id);
+                    const row = document.querySelector(`tr[data-place-id="${retailer.place_id}"]`);
+                    setActiveRow(row);
+                });
+
+                markers.push(marker);
+                markersById[retailer.place_id] = marker;
+            });
+
+            const foundTableBody = document.getElementById('foundTableBody');
+            foundTableBody.innerHTML = '';
+            data.retailers_found.forEach(retailer => {
+                const mapsUrl = buildMapsUrl(retailer);
+                const row = document.createElement('tr');
+                row.dataset.placeId = retailer.place_id;
+                row.dataset.name = retailer.name.toLowerCase();
+                row.dataset.match = (retailer.matched_retailer || '').toLowerCase();
+                row.dataset.distance = retailer.distance_miles;
+                row.dataset.address = retailer.address.toLowerCase();
+                row.dataset.rating = retailer.rating || 0;
+                row.dataset.status = (retailer.business_status || '').toLowerCase();
+                row.innerHTML = `
+                    <td>${retailer.name}</td>
+                    <td>${retailer.matched_retailer ? `<span class="badge badge-success">${retailer.matched_retailer}</span>` : '-'}</td>
+                    <td>${formatMiles(retailer.distance_miles)}</td>
+                    <td>${retailer.address}</td>
+                    <td>${retailer.rating ? `${retailer.rating} (${retailer.user_ratings_total || 0})` : '-'}</td>
+                    <td><span class="badge badge-${retailer.business_status === 'OPERATIONAL' ? 'success' : 'warning'}">${retailer.business_status}</span></td>
+                    <td><a class="table-link" href="${mapsUrl}" target="_blank" rel="noreferrer">View</a></td>
+                `;
+                row.addEventListener('click', () => {
+                    focusRetailer(retailer.place_id);
+                    setActiveRow(row);
+                    openPlaceModal(retailer);
+                });
+                const mapLink = row.querySelector('a.table-link');
+                if (mapLink) {
+                    mapLink.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                    });
+                }
+                foundTableBody.appendChild(row);
+            });
+            document.getElementById('foundCount').textContent = `${data.retailers_found.length} results`;
+
+            const categoryTableBody = document.getElementById('categoryTableBody');
+            categoryTableBody.innerHTML = '';
+
+            const categoryCount = {};
+            data.retailers_found.forEach(retailer => {
+                if (retailer.types) {
+                    const types = Array.isArray(retailer.types) ? retailer.types : retailer.types.split(', ');
+                    types.forEach(type => {
+                        const cleanType = type.trim();
+                        if (cleanType && cleanType !== 'point_of_interest' && cleanType !== 'establishment') {
+                            categoryCount[cleanType] = (categoryCount[cleanType] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            const sortedCategories = Object.entries(categoryCount)
+                .sort((a, b) => b[1] - a[1]);
+
+            sortedCategories.forEach(([category, count]) => {
+                const percentage = ((count / data.retailers_found.length) * 100).toFixed(1);
+                const row = document.createElement('tr');
+                row.classList.add('category-row');
+                row.dataset.category = category;
+                row.innerHTML = `
+                    <td style="text-transform: capitalize;">${category.replace(/_/g, ' ')}</td>
+                    <td><strong>${count}</strong></td>
+                    <td>${percentage}%</td>
+                `;
+                row.addEventListener('click', () => {
+                    openCategoryModal(category);
+                });
+                categoryTableBody.appendChild(row);
+            });
+
+            const missingTableBody = document.getElementById('missingTableBody');
+            missingTableBody.innerHTML = '';
+            const categorySet = new Set();
+            data.retailers_missing.forEach(retailer => {
+                const row = document.createElement('tr');
+                row.dataset.name = retailer.name.toLowerCase();
+                row.dataset.category = (retailer.category || 'Unknown');
+                categorySet.add(row.dataset.category);
+                row.innerHTML = `
+                    <td>${retailer.name}</td>
+                    <td>${retailer.category || 'Unknown'}</td>
+                `;
+                missingTableBody.appendChild(row);
+            });
+
+            const categoryFilter = document.getElementById('missingCategoryFilter');
+            const categories = Array.from(categorySet).sort();
+            categoryFilter.innerHTML = '<option value="">All categories</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+
+            document.getElementById('missingCount').textContent = `${data.retailers_missing.length} opportunities`;
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

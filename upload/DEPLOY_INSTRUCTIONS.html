@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy to Netlify - Instructions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+
+        .step h2 {
+            display: inline-block;
+            color: #2d3748;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .step p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .step ul {
+            margin: 15px 0 15px 40px;
+            color: #4a5568;
+        }
+
+        .step li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .url-box {
+            background: #ebf8ff;
+            border: 2px solid #4299e1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 20px 0;
+            color: #2c5282;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .button:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .info-box {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #742a2a;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #742a2a;
+        }
+
+        .success-box {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success-box h3 {
+            color: #22543d;
+            margin-bottom: 10px;
+        }
+
+        .success-box p {
+            color: #22543d;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer p {
+            opacity: 0.8;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Deploy to Netlify</h1>
+            <p>Get your dashboard live in 30 seconds!</p>
+        </div>
+
+        <div class="content">
+            <div class="step">
+                <span class="step-number">1</span>
+                <h2>Open Netlify Drop</h2>
+                <div class="url-box">
+                    https://app.netlify.com/drop
+                </div>
+                <a href="https://app.netlify.com/drop" target="_blank" class="button">
+                    Open Netlify Drop →
+                </a>
+                <p><strong>No account needed!</strong> This is the fastest way to deploy.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <h2>Drag This Folder</h2>
+                <p>Drag the entire <strong>"upload"</strong> folder onto the Netlify Drop page.</p>
+                <p>The folder contains:</p>
+                <ul>
+                    <li><strong>index.html</strong> - Your interactive dashboard (570 KB)</li>
+                    <li><strong>README.txt</strong> - Additional instructions</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <h2>Get Your Live URL</h2>
+                <p>After uploading (takes ~10 seconds), Netlify will give you a URL like:</p>
+                <div class="url-box">
+                    https://amazing-name-12345.netlify.app
+                </div>
+                <p>Your dashboard is now <strong>live on the internet!</strong></p>
+            </div>
+
+            <div class="success-box">
+                <h3>✅ What You Get</h3>
+                <p><strong>• Live, shareable URL</strong> - Send to clients immediately</p>
+                <p><strong>• Interactive dashboard</strong> - Google Map, filters, exports</p>
+                <p><strong>• Mobile friendly</strong> - Works on phones and tablets</p>
+                <p><strong>• Fast & secure</strong> - Free SSL certificate included</p>
+                <p><strong>• No maintenance</strong> - Netlify handles everything</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <h2>Share with Clients</h2>
+                <p>Your dashboard includes:</p>
+                <ul>
+                    <li>Interactive Google Map with retailer locations</li>
+                    <li>Distance filters: 1, 2, 3, 4, 5 mile radius</li>
+                    <li>Retailers found (60 total, 7 matched to target list)</li>
+                    <li>Missing retailers (8,569 voids) with categories</li>
+                    <li>Search functionality</li>
+                    <li>CSV & PDF export</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h3>📍 Current Dashboard Location</h3>
+                <p><strong>McKinney, TX</strong></p>
+                <p>Coordinates: 33.423248658058945, -96.5887672571626</p>
+                <p>Radius: 5 miles</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span>
+                <h2>Optional: Customize Your URL</h2>
+                <p>Want a custom URL instead of a random one?</p>
+                <ol style="margin-left: 40px; margin-top: 15px;">
+                    <li>Sign up for free at <strong>netlify.com</strong></li>
+                    <li>Go to Site Settings → General → Change site name</li>
+                    <li>Choose: <strong>yourproject.netlify.app</strong></li>
+                </ol>
+                <p style="margin-top: 15px;">Or add your own domain: <strong>analysis.yourcompany.com</strong></p>
+            </div>
+
+            <div class="success-box">
+                <h3>💡 Pro Tips</h3>
+                <p><strong>• Create multiple dashboards</strong> - Compare different locations side-by-side</p>
+                <p><strong>• Update anytime</strong> - Re-upload to update with new data</p>
+                <p><strong>• Share the link</strong> - Perfect for client presentations</p>
+                <p><strong>• Export reports</strong> - CSV for Excel, PDF for printing</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Retail Void Analysis Dashboard</strong></p>
+            <p>Powered by Google Maps API • Hosted on Netlify</p>
+            <p>© 2026 Vista Site Selection</p>
+        </div>
+    </div>
+</body>
+</html>
